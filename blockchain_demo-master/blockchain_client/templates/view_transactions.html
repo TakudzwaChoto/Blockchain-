@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% set active_page = "transactions" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="card-body">
+                    <h4 class="card-title">View Transactions</h4>
+                    <p class="card-text">
+                        Enter a list of Blockchain node
+                        URL and click "View Transactions" button to check all
+                        transactions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container alert alert-secondary">
+        <form id="node_form">
+            <div class="row">
+                <label class="col-sm-2">Node URL:</label>
+                <div class="col-sm-10">
+                    <input type="text" name="node" id="node" rows="1"
+                           class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <input type="button" id="view_transactions_btn"
+                           class="btn btn-primary btn-lg" value="View Transactions">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="container">
+        <table class="table table-bordered" id="mined_transactions_table"></table>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script language="JavaScript">
+        $(function() {
+            $('#view_transactions_btn').click(function() {
+                $.ajax({
+                    url: 'http://' + $('#node').val() + '/chain',
+                    type: "GET",
+                    success: function(response) {
+                        let transactions = [];
+                        let count = 1;
+                        for (i=0; i < response['length']; i++) {
+                            for (j=0; j < response['chain'][i]['transactions'].length; j++) {
+
+                                let options = {  year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"  };
+                                let date = new Date(response["chain"][i]["timestamp"] * 1000);
+                                formattedTimestamp = date.toLocaleTimeString('en-US', options);
+
+                                var transaction = [
+                                    count,
+                                    response['chain'][i]['transactions'][j]['sender_public_key'],
+                                    response['chain'][i]['transactions'][j]['recipient_public_key'],
+                                    response['chain'][i]['transactions'][j]['amount'],
+                                    formattedTimestamp,
+                                    response['chain'][i]['block_number'],
+                                ];
+                                transactions.push(transaction);
+                                count += 1;
+                            }
+                        }
+
+                        $('#mined_transactions_table').dataTable({
+                            destroy: true,
+                            data: transactions,
+                            columns: [
+                                {title: "#"},
+                                {title: "Sender Public Key"},
+                                {title: "Recipient Public Key"},
+                                {title: "Amount"},
+                                {title: "Timestamp"},
+                                {title: "Block"},
+                            ],
+                            columnDefs: [{
+                                targets: [1, 2, 3, 4, 5],
+                                render: $.fn.dataTable.render.ellipsis(25)
+                            }]
+                        });
+
+                    },
+                    error: function(error) {
+                        console.log(error)
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

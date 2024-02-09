@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% set active_page = "index" %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="card-body">
+                    <h4 class="card-title">Transactions to be added to the next block</h4>
+                    <button class="btn btn-primary" id="refresh_transaction" type="submit">
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <table class="table table-bordered" id="unmined_transactions_table">
+
+        </table>
+        <div class="col-lg-12 text-center">
+            <input type="button" id="mine_button" class="btn btn-primary btn-lg" value="Mine">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="card-body">
+                    <h4 class="card-title">Transactions on the blockchain</h4>
+                    <button class="btn btn-primary" id="refresh_blockchain" type="submit">
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <table class="table table-bordered" id="mined_transactions_table"></table>
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script language="JavaScript">
+        $(function() {
+
+            // Populate chain table
+            $.ajax({
+                url: '/chain',
+                type: "GET",
+                success: function(response) {
+                    let transactions = [];
+                    let count = 1;
+                    for (i=0; i < response['length']; i++) {
+                        for (j=0; j < response['chain'][i]['transactions'].length; j++) {
+
+                            let options = {  year: "numeric", month: "short",  day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"  };
+                            let date = new Date(response["chain"][i]["timestamp"] * 1000);
+                            formattedTimestamp = date.toLocaleTimeString('en-US', options);
+
+                            var transaction = [
+                                count,
+                                response['chain'][i]['transactions'][j]['sender_public_key'],
+                                response['chain'][i]['transactions'][j]['recipient_public_key'],
+                                response['chain'][i]['transactions'][j]['amount'],
+                                formattedTimestamp,
+                                response['chain'][i]['block_number'],
+                            ];
+                            transactions.push(transaction);
+                            count += 1;
+                        }
+                    }
+
+                    $('#mined_transactions_table').dataTable({
+                        data: transactions,
+                        columns: [
+                            {title: "#"},
+                            {title: "Sender Public Key"},
+                            {title: "Recipient Public Key"},
+                            {title: "Amount"},
+                            {title: "Timestamp"},
+                            {title: "Block"},
+                        ],
+                        columnDefs: [{
+                            targets: [1, 2, 3, 4, 5],
+                            render: $.fn.dataTable.render.ellipsis(25)
+                        }]
+                    });
+
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+
+            // Populate unmined transactions
+            $.ajax({
+                url: '/transactions/get',
+                type: "GET",
+                success: function(response) {
+                    let transactions = [];
+                    let count = 1;
+                    for (i=0; i < response['transactions'].length; i++) {
+                        var transaction = [
+                            count,
+                            response['transactions'][i]['sender_public_key'],
+                            response['transactions'][i]['recipient_public_key'],
+                            response['transactions'][i]['amount'],
+                        ];
+                        transactions.push(transaction);
+                        count += 1;
+                    }
+                    $('#unmined_transactions_table').dataTable({
+                        data: transactions,
+                        columns: [
+                            {title: "#"},
+                            {title: "Sender Public Key"},
+                            {title: "Recipient Public Key"},
+                            {title: "Amount"},
+                        ],
+                        columnDefs: [{
+                            targets: [1, 2, 3],
+                            render: $.fn.dataTable.render.ellipsis(25)
+                        }]
+                    });
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+
+            $('#mine_button').click(function() {
+                $.ajax({
+                    url: '/mine',
+                    type: 'GET',
+                    success: function(response) {
+                        window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error)
+                    }
+                });
+            });
+
+            $('#refresh_transactions').click(function() {
+                windows.location.reload();
+            });
+
+            $('#refresh_blockchain').click(function() {
+                $.ajax({
+                    url: '/nodes/resolve',
+                    type: 'GET',
+                    success: function(response) {
+                        window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error)
+                    }
+                });
+            });
+        });
+</script>
+{% endblock %}
