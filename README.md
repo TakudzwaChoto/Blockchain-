@@ -1,14 +1,14 @@
 Blockchain wallet,
-Create wallet
-Generate coins
-Feed the wallet
-Send Coins
-Recieve Coins
-Add Nodes
-Check Nodes Availabe
-Check transaction History
-Check balance
-Top the balance
+Create wallet,
+Generate coins,
+Feed the wallet,
+Send Coins,
+Recieve Coins,
+Add Nodes,
+Check Nodes Availabe,
+Check transaction History,
+Check balance,
+Top the balance,
 etc
 
 Project View:
@@ -18,3 +18,5 @@ Project View:
 Author:
 TAKUDZWA CHOTO 
 SOUTHWEST UNIVERSITY OF SCIENCE AND TECHNOLOGY,CHINA
+
+                                                                                                                           contact me at 🔤:ctakudzwa95@gmail.com
